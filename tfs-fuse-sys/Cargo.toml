@@ -10,6 +10,16 @@ build = "build.rs"
 
 [dependencies]
 libc = "0.2"
+nix = "0.5"
+scoped-pool = "0.1"
+
+[dev-dependencies]
+tempfile = "2.0"
+tempdir = "0.3"
+scopeguard = "0.1"
+
+tfs-file-ext = { path = "../tfs-file-ext", version = "0.1" }
 
 [build-dependencies]
 pkg-config = "0.3"
+

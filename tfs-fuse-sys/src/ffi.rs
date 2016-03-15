@@ -17,24 +17,25 @@
 use libc::{c_char, c_int, size_t, c_void, stat, c_ulong, uint64_t, c_uint,
            mode_t, dev_t, gid_t, uid_t, off_t, statvfs, flock, timespec, pid_t};
 
+#[allow(dead_code)]
 extern "C" {
     pub fn fuse_new(ch: *mut fuse_chan, args: *mut fuse_args, op: *const fuse_operations,
                     op_size: size_t, user_data: *mut c_void) -> *mut fuse;
     pub fn fuse_destroy(fuse: *mut fuse) -> c_void;
     pub fn fuse_loop_mt(fuse: *mut fuse) -> c_int;
-    pub fn fuse_exit(fuse: *mut fuse) -> c_void;
     pub fn fuse_mount(mountpoint: *const c_char, args: *mut fuse_args) -> *mut fuse_chan;
     pub fn fuse_unmount(mountpoint: *const c_char, ch: *mut fuse_chan) -> c_void;
     pub fn fuse_daemonize(foreground: c_int) -> c_int;
     pub fn fuse_set_signal_handlers(session: *mut fuse_session) -> c_int;
     pub fn fuse_remove_signal_handlers(session: &mut fuse_session) -> c_void;
-    pub fn fuse_getcontex() -> *mut fuse_context;
 }
 
-// Opaque types
-pub struct fuse(c_void);
-pub struct fuse_chan(c_void);
-pub struct fuse_session(c_void);
+extern "C" {
+    pub fn fuse_exit(fuse: *mut fuse) -> c_void;
+    pub fn fuse_get_context() -> *mut fuse_context;
+    pub fn fuse_main_real(argc: c_int, argv: *const *const c_char, ops: *const fuse_operations,
+                          size: size_t, user_data: *mut c_void) -> c_int;
+}
 
 #[repr(C)]
 pub struct fuse_context {
@@ -45,13 +46,7 @@ pub struct fuse_context {
     pub private: *mut c_void
 }
 
-#[repr(C)]
-pub struct fuse_args {
-    pub argc: c_int,
-    pub argv: *const *const c_char,
-    pub allocated: c_int
-}
-
+#[derive(Debug, Default)]
 #[repr(C)]
 pub struct fuse_operations {
     pub getattr: Option<extern "C" fn(*const c_char, *mut stat) -> c_int>,
@@ -84,7 +79,7 @@ pub struct fuse_operations {
     pub releasedir: Option<extern "C" fn(*const c_char, *mut fuse_file_info) -> c_int>,
     pub fsyncdir: Option<extern "C" fn(*const c_char, *mut fuse_file_info) -> c_int>,
     pub init: Option<extern "C" fn(*mut fuse_conn_info) -> *mut c_void>,
-    pub destroy: Option<extern "C" fn(*mut c_void) -> c_void>,
+    pub destroy: Option<extern "C" fn(*mut c_void)>,
     pub access: Option<extern "C" fn(*const c_char, c_int) -> c_int>,
     pub create: Option<extern "C" fn(*const c_char, mode_t, *mut fuse_file_info) -> c_int>,
     pub ftruncate: Option<extern "C" fn(*const c_char, off_t, *mut fuse_file_info) -> c_int>,
@@ -98,32 +93,53 @@ pub struct fuse_operations {
     pub padding1: u32,
 
     #[cfg(target_os = "linux")]
-    pub padding2: [Option<extern "C" fn() -> c_void>; 4],
+    pub padding2: [Option<extern "C" fn()>; 4],
 
     // OS X has 10 reserved funcions, then 10 more functions.
     #[cfg(target_os = "macos")]
-    pub padding2: [Option<extern "C" fn() -> c_void>; 20]
+    pub padding2: [Option<extern "C" fn()>; 20]
 }
 
 pub type fuse_fill_dir_t = Option<extern "C" fn(*mut c_void, *const c_char, *const stat, off_t)>;
 
 #[repr(C)]
 pub struct fuse_file_info {
-    flags: c_int,
-    fh_old: c_ulong,
-    writepage: c_int,
-    bitfields: [u8; 4],
-    fh: uint64_t,
-    lock_owner: uint64_t
+    pub flags: c_int,
+    pub fh_old: c_ulong,
+    pub writepage: c_int,
+    pub bitfields: [u8; 4],
+    pub fh: uint64_t,
+    pub lock_owner: uint64_t
 }
 
 #[repr(C)]
 pub struct fuse_conn_info {
-    proto_major: c_uint,
-    proto_minor: c_uint,
-    async_read: c_uint,
-    max_write: c_uint,
-    max_readahead: c_uint,
-    padding: [c_uint; 27]
+    pub proto_major: c_uint,
+    pub proto_minor: c_uint,
+    pub async_read: c_uint,
+    pub max_write: c_uint,
+    pub max_readahead: c_uint,
+    pub padding: [c_uint; 27]
+}
+
+// Opaque types
+#[allow(dead_code)]
+#[repr(C)]
+pub struct fuse(c_void);
+
+#[allow(dead_code)]
+#[repr(C)]
+pub struct fuse_chan(c_void);
+
+#[allow(dead_code)]
+#[repr(C)]
+pub struct fuse_session(c_void);
+
+#[allow(dead_code)]
+#[repr(C)]
+pub struct fuse_args {
+    pub argc: c_int,
+    pub argv: *const *const c_char,
+    pub allocated: c_int
 }
 
