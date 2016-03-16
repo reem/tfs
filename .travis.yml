@@ -38,6 +38,7 @@ matrix:
 
         # OS X i686-apple-darwin
         - os: osx
+          osx_image: osx10.11
           env: TARGET=i686-apple-darwin RUST=stable PKG_CONFIG_ALLOW_CROSS=1
           rust: stable # Only cross-compile from stable
 
@@ -81,12 +82,15 @@ matrix:
 
         # OS X x86_64-apple-darwin
         - os: osx
+          osx_image: osx10.11
           rust: stable
           env: TARGET=x86_64-apple-darwin RUST=stable
         - os: osx
+          osx_image: osx10.11
           rust: beta
           env: TARGET=x86_64-apple-darwin
         - os: osx
+          osx_image: osx10.11
           rust: nightly
           env: TARGET=x86_64-apple-darwin
 
