@@ -5,7 +5,7 @@ set -ex
 # Build and test our library.
 
 cargo build --target $TARGET
-sudo -E cargo test --target $TARGET
+sudo env PATH=$PATH cargo test --target $TARGET
 
 # Build and test other crates as well
 
