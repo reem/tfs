@@ -405,26 +405,18 @@ mod test {
 
     #[test]
     fn test_fuse_basic_run_exit() {
-        use std::sync::atomic::{AtomicUsize, Ordering};
-        use fuse::{Filesystem, Session, channel, Request};
+        use fuse::{Filesystem, Session, channel};
 
-        #[derive(Debug)]
-        struct Mock<'a>(&'a AtomicUsize);
-
-        impl<'a> Filesystem for Mock<'a> {
-            fn destroy(&mut self, _: &Request) { self.0.fetch_add(1, Ordering::SeqCst); }
-        }
+        struct Mock;
+        impl Filesystem for Mock { }
 
         let tempdir = ::tempdir::TempDir::new("tfs-fuse-basic-run-exit-test").unwrap();
         let mountpoint = tempdir.path().to_path_buf();
 
-        let drops = AtomicUsize::new(0);
-        let mock = Mock(&drops);
-
         let pool = ::scoped_pool::Pool::new(1);
         defer!(pool.shutdown());
 
-        let mut se = Session::new(mock, &mountpoint, &[]);
+        let mut se = Session::new(Mock, &mountpoint, &[]);
 
         pool.scoped(|scope| {
             scope.execute(|| { se.run() });
@@ -432,8 +424,6 @@ mod test {
             ::std::thread::sleep(::std::time::Duration::new(1, 0));
             defer!(channel::unmount(&mountpoint).unwrap());
         });
-
-        assert_eq!(drops.load(Ordering::SeqCst), 1);
     }
 
     #[test]
