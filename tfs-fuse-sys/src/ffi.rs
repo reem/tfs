@@ -17,24 +17,18 @@
 use libc::{c_char, c_int, size_t, c_void, stat, c_ulong, uint64_t, c_uint,
            mode_t, dev_t, gid_t, uid_t, off_t, statvfs, flock, timespec, pid_t};
 
-#[allow(dead_code)]
 extern "C" {
-    pub fn fuse_new(ch: *mut fuse_chan, args: *mut fuse_args, op: *const fuse_operations,
+    pub fn fuse_new(ch: *mut fuse_chan, args: *const fuse_args, op: *const fuse_operations,
                     op_size: size_t, user_data: *mut c_void) -> *mut fuse;
     pub fn fuse_destroy(fuse: *mut fuse) -> c_void;
+    pub fn fuse_loop(fuse: *mut fuse) -> c_int;
     pub fn fuse_loop_mt(fuse: *mut fuse) -> c_int;
-    pub fn fuse_mount(mountpoint: *const c_char, args: *mut fuse_args) -> *mut fuse_chan;
+    pub fn fuse_mount(mountpoint: *const c_char, args: *const fuse_args) -> *mut fuse_chan;
     pub fn fuse_unmount(mountpoint: *const c_char, ch: *mut fuse_chan) -> c_void;
-    pub fn fuse_daemonize(foreground: c_int) -> c_int;
-    pub fn fuse_set_signal_handlers(session: *mut fuse_session) -> c_int;
-    pub fn fuse_remove_signal_handlers(session: &mut fuse_session) -> c_void;
-}
-
-extern "C" {
+    pub fn fuse_parse_cmdline(args: *mut fuse_args, mountpoint: *mut *const c_char,
+                              multithreaded: *mut c_int, foreground: *mut c_int) -> c_int;
     pub fn fuse_exit(fuse: *mut fuse) -> c_void;
     pub fn fuse_get_context() -> *mut fuse_context;
-    pub fn fuse_main_real(argc: c_int, argv: *const *const c_char, ops: *const fuse_operations,
-                          size: size_t, user_data: *mut c_void) -> c_int;
 }
 
 #[repr(C)]
@@ -123,19 +117,12 @@ pub struct fuse_conn_info {
 }
 
 // Opaque types
-#[allow(dead_code)]
 #[repr(C)]
 pub struct fuse(c_void);
 
-#[allow(dead_code)]
 #[repr(C)]
 pub struct fuse_chan(c_void);
 
-#[allow(dead_code)]
-#[repr(C)]
-pub struct fuse_session(c_void);
-
-#[allow(dead_code)]
 #[repr(C)]
 pub struct fuse_args {
     pub argc: c_int,
