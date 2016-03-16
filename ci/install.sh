@@ -4,9 +4,7 @@ set -ex
 
 # Install FUSE if we are on osx.
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    sudo chown -R $USER $(brew --repo)
-    brew update
-    sudo brew cask install osxfuse
+    brew update && brew install osxfuse;
 fi
 
 # Install libraries for cross-compiling if we are cross-compiling:
