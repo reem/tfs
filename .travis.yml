@@ -14,6 +14,8 @@ matrix:
     allow_failures:
         # FIXME(#9): i686-unknown-linux-gnu cross compile is broken
         - env: TARGET=i686-unknown-linux-gnu RUST=stable PKG_CONFIG_ALLOW_CROSS=1
+        # FIXME(#13): Cross-compiled fuse not available?
+        - env: TARGET=x86_64-unknown-linux-musl RUST=stable PKG_CONFIG_ALLOW_CROSS=1
 
     # Our actual builds
     include:
@@ -43,6 +45,7 @@ matrix:
           rust: stable # Only cross-compile from stable
 
         # Linux x86_64-unknown-linux-musl
+        # FIXME(#13): Cross-compiled fuse not available?
         - os: linux
           dist: trusty
           env: TARGET=x86_64-unknown-linux-musl RUST=stable PKG_CONFIG_ALLOW_CROSS=1
